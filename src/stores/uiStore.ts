@@ -23,7 +23,7 @@ export const useUiStore = create<UiState>((set) => ({
   currentView: "all",
   selectedNoteId: null,
   searchQuery: "",
-  theme: "system",
+  theme: "dark",
   sidebarWidth: 220,
   noteListWidth: 280,
   editorMode: "edit",

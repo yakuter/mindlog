@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useUiStore } from "../../stores/uiStore";
 import { useFolderStore } from "../../stores/folderStore";
-import { useNoteStore } from "../../stores/noteStore";
 import { useTagStore } from "../../stores/tagStore";
 import ThemeToggle from "../common/ThemeToggle";
 import type { Folder as FolderType } from "../../types";

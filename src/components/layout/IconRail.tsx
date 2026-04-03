@@ -2,8 +2,6 @@ import {
   FileText,
   Star,
   Trash2,
-  FolderClosed,
-  Hash,
   Search,
   Settings,
 } from "lucide-react";
@@ -51,7 +49,7 @@ export default function IconRail() {
       </button>
 
       {/* Divider */}
-      <div className="w-5 h-px bg-white/10 my-2" />
+      <div style={{ width: 20, height: 1, backgroundColor: "rgba(255,255,255,0.08)", marginTop: 8, marginBottom: 8 }} />
 
       {/* Nav items */}
       <div className="flex flex-col gap-1">

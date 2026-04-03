@@ -28,6 +28,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -35,5 +36,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDFFODkzQkZBNkE5NkQ3QUEKUldTcTE1WnEranVKSHR3RVZTOWh2UUdZaHlDWEtrS25NYXJKZEtJR0wwSTFYa3pJSVRldXd2QWwK",
+      "endpoints": [
+        "https://github.com/yakuter/mindlog/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

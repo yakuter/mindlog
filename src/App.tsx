@@ -11,6 +11,7 @@ import Sidebar from "./components/layout/Sidebar";
 import NoteList from "./components/layout/NoteList";
 import EditorPanel from "./components/layout/EditorPanel";
 import SettingsPanel from "./components/layout/SettingsPanel";
+import UpdateNotifier from "./components/common/UpdateNotifier";
 
 function App() {
   const [ready, setReady] = useState(false);
@@ -64,6 +65,7 @@ function App() {
 
   return (
     <div className="h-screen flex overflow-hidden">
+      <UpdateNotifier />
       <IconRail />
       {currentView === "settings" ? (
         <div className="flex-1 min-w-0">

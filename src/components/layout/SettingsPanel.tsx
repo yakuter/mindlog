@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import {
   Database,
-  FolderOpen,
   Save,
   AlertCircle,
   CheckCircle,
@@ -136,9 +135,9 @@ export default function SettingsPanel() {
 
               {/* Success message */}
               {saved && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", backgroundColor: "rgba(45, 212, 168, 0.1)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
-                  <CheckCircle size={13} style={{ color: "var(--accent)", flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: "var(--accent)" }}>Path saved. Restart the app to apply changes.</span>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", backgroundColor: "var(--secondary-soft)", borderRadius: "var(--radius-md)", marginBottom: 12 }}>
+                  <CheckCircle size={13} style={{ color: "var(--success)", flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: "var(--success)" }}>Path saved. Restart the app to apply changes.</span>
                 </div>
               )}
 
