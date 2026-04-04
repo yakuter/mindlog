@@ -13,6 +13,9 @@ export default function UpdateNotifier() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
+    const autoUpdate = localStorage.getItem("passwall_auto_update") !== "false";
+    if (!autoUpdate) return;
+
     let cancelled = false;
 
     async function checkForUpdates() {
@@ -23,8 +26,8 @@ export default function UpdateNotifier() {
           setUpdate(result);
           setState("available");
         }
-      } catch (e) {
-        console.warn("Update check failed:", e);
+      } catch {
+        // No update artifacts published yet or network issue — silently ignore on startup
       }
     }
 

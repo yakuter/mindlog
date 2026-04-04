@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useUiStore } from "../../stores/uiStore";
 import type { NavigationView } from "../../types";
+import { version as APP_VERSION } from "../../../package.json";
 
 const navItems: {
   id: string;
@@ -36,7 +37,7 @@ export default function IconRail() {
     >
       {/* Logo */}
       <div style={{ width: 32, height: 32, borderRadius: "var(--radius-md)", backgroundColor: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-        <span className="text-white font-bold text-[14px] leading-none">M</span>
+        <span className="text-white font-bold text-[14px] leading-none">P</span>
       </div>
 
       {/* Search */}
@@ -74,6 +75,11 @@ export default function IconRail() {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Version */}
+      <span style={{ fontSize: 9, fontWeight: 600, color: "var(--text-quaternary)", marginBottom: 6, fontFamily: "'SF Mono', 'Fira Code', monospace", letterSpacing: "0.02em" }}>
+        v{APP_VERSION}
+      </span>
 
       {/* Settings */}
       <button

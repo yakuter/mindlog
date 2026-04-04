@@ -1,4 +1,4 @@
-# MindLog
+# Passwall Notes
 
 A fast, privacy-first desktop notes application built with Tauri, React, and SQLite. All data stays local on your machine.
 
@@ -89,7 +89,7 @@ mindlog/
 
 ## Database
 
-MindLog uses SQLite with the following schema:
+Passwall Notes uses SQLite with the following schema:
 
 - **notes** — id, title, content, folder_id, is_favorite, is_deleted, timestamps
 - **folders** — id, name, parent_id (hierarchical), sort_order

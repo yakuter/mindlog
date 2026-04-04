@@ -4,7 +4,7 @@ let db: Database | null = null;
 let currentDbPath: string | null = null;
 
 const DB_PATH_KEY = "mindlog_db_path";
-const DEFAULT_DB_NAME = "mindlog.db";
+const DEFAULT_DB_NAME = "passwall-notes.db";
 
 export function getStoredDbPath(): string {
   return localStorage.getItem(DB_PATH_KEY) || DEFAULT_DB_NAME;

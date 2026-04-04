@@ -20,10 +20,21 @@ import {
   Image,
   Columns2,
   Pencil,
+  Sparkles,
+  FileText,
+  Expand,
+  RefreshCw,
+  Lightbulb,
+  Copy,
+  Check,
+  Replace,
+  ChevronDown,
+  Languages,
 } from "lucide-react";
 import { useUiStore } from "../../stores/uiStore";
 import { useNoteStore } from "../../stores/noteStore";
 import { useTagStore } from "../../stores/tagStore";
+import { runAiAction, getApiKey, ACTION_LABELS, type AiAction, type AiResult } from "../../lib/ai";
 import MarkdownEditor from "../editor/MarkdownEditor";
 import MarkdownPreview from "../editor/MarkdownPreview";
 
@@ -50,25 +61,83 @@ export default function EditorPanel() {
   const [content, setContent] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showAiMenu, setShowAiMenu] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<AiResult | null>(null);
+  const [aiAction, setAiAction] = useState<AiAction | null>(null);
+  const [aiError, setAiError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const titleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const contentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDark = document.documentElement.classList.contains("dark");
   const noteTags = note ? (noteTagMap[note.id] || []) : [];
+  const hasApiKey = !!getApiKey();
 
   useEffect(() => {
     if (note) { setTitle(note.title); setContent(note.content); }
   }, [note?.id]);
 
-  const debouncedSave = useCallback(
-    (field: "title" | "content", value: string) => {
-      if (!note) return;
-      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(() => { updateNote(note.id, { [field]: value }); }, 500);
-    },
-    [note?.id, updateNote]
-  );
+  const handleTitleChange = useCallback((v: string) => {
+    setTitle(v);
+    if (!note) return;
+    if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
+    titleTimerRef.current = setTimeout(() => { updateNote(note.id, { title: v }); }, 500);
+  }, [note?.id, updateNote]);
 
-  const handleTitleChange = (v: string) => { setTitle(v); debouncedSave("title", v); };
-  const handleContentChange = (v: string) => { setContent(v); debouncedSave("content", v); };
+  const handleContentChange = useCallback((v: string) => {
+    setContent(v);
+    if (!note) return;
+    if (contentTimerRef.current) clearTimeout(contentTimerRef.current);
+    contentTimerRef.current = setTimeout(() => { updateNote(note.id, { content: v }); }, 500);
+  }, [note?.id, updateNote]);
+
+  const handleAiAction = async (action: AiAction) => {
+    setShowAiMenu(false);
+    setAiAction(action);
+    setAiResult(null);
+    setAiError("");
+    setAiLoading(true);
+    try {
+      const result = await runAiAction(action, content, title);
+      setAiResult(result);
+    } catch (err: unknown) {
+      setAiError(err instanceof Error ? err.message : "AI request failed");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleReplaceContent = () => {
+    if (!aiResult) return;
+    handleContentChange(aiResult.content);
+    if (aiResult.title) handleTitleChange(aiResult.title);
+    setAiResult(null);
+    setAiAction(null);
+  };
+
+  const handleCopyResult = async () => {
+    if (!aiResult) return;
+    const text = aiResult.title
+      ? `${aiResult.title}\n\n${aiResult.content}`
+      : aiResult.content;
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleAppendResult = () => {
+    if (!aiResult) return;
+    handleContentChange(content + "\n\n---\n\n" + aiResult.content);
+    setAiResult(null);
+    setAiAction(null);
+  };
+
+  const dismissAi = () => {
+    setAiResult(null);
+    setAiAction(null);
+    setAiError("");
+    setAiLoading(false);
+  };
 
   if (!note) {
     return (
@@ -187,9 +256,9 @@ export default function EditorPanel() {
         </div>
       )}
 
-      {/* Formatting toolbar */}
+      {/* Formatting toolbar + AI button */}
       {!isTrash && editorMode !== "preview" && (
-        <div style={{ paddingLeft: 32, paddingRight: 32, paddingBottom: 12, flexShrink: 0 }}>
+        <div style={{ paddingLeft: 32, paddingRight: 32, paddingBottom: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "6px 4px", backgroundColor: "var(--hover-bg)", borderRadius: "var(--radius-md)", width: "fit-content" }}>
             {toolbarItems.map((item, i) => {
               if ("type" in item && item.type === "divider") {
@@ -207,6 +276,161 @@ export default function EditorPanel() {
                 </button>
               );
             })}
+          </div>
+
+          {hasApiKey && (
+            <div style={{ position: "relative" }}>
+              <button
+                onClick={() => setShowAiMenu(!showAiMenu)}
+                disabled={aiLoading || !content.trim()}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "6px 12px", borderRadius: "var(--radius-md)",
+                  fontSize: 12, fontWeight: 600,
+                  background: "linear-gradient(135deg, #7c3aed, #5707ff)",
+                  color: "white", border: "none", cursor: aiLoading || !content.trim() ? "not-allowed" : "pointer",
+                  opacity: aiLoading || !content.trim() ? 0.5 : 1,
+                  transition: "opacity 0.15s",
+                }}
+              >
+                <Sparkles size={13} />
+                AI
+                <ChevronDown size={11} />
+              </button>
+
+              {showAiMenu && (
+                <>
+                  <div style={{ position: "fixed", inset: 0, zIndex: 10 }} onClick={() => setShowAiMenu(false)} />
+                  <div style={{ position: "absolute", right: 0, top: 36, zIndex: 20, backgroundColor: "var(--sidebar-bg)", border: "1px solid rgba(124, 58, 237, 0.2)", borderRadius: "var(--radius-lg)", padding: "6px 0", minWidth: 220, boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(124, 58, 237, 0.08)", backdropFilter: "blur(12px)" }}>
+                    {/* Gemini branding header */}
+                    <div style={{ padding: "12px 14px 10px", borderBottom: "1px solid rgba(124, 58, 237, 0.12)", marginBottom: 4 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 24, height: 24, borderRadius: 8, background: "linear-gradient(135deg, #4285F4, #9B72CB, #D96570)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Sparkles size={13} style={{ color: "white" }} />
+                        </div>
+                        <div>
+                          <span style={{ fontSize: 14, fontWeight: 700, background: "linear-gradient(135deg, #4285F4, #9B72CB, #D96570)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Gemini</span>
+                          <span style={{ fontSize: 10, color: "var(--text-quaternary)", marginLeft: 6, fontWeight: 500 }}>AI</span>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 10, color: "var(--text-quaternary)", marginTop: 4, lineHeight: 1.4 }}>Powered by Google Gemini</p>
+                    </div>
+                    {([
+                      { action: "summarize" as AiAction, icon: FileText, desc: "Condense into key points" },
+                      { action: "expand" as AiAction, icon: Expand, desc: "Add more detail & depth" },
+                      { action: "rewrite" as AiAction, icon: RefreshCw, desc: "Improve clarity & flow" },
+                      { action: "ideas" as AiAction, icon: Lightbulb, desc: "Generate related ideas" },
+                      { action: "translate" as AiAction, icon: Languages, desc: "English ↔ Turkish" },
+                    ]).map((item) => (
+                      <button
+                        key={item.action}
+                        onClick={() => handleAiAction(item.action)}
+                        style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, textAlign: "left", padding: "10px 14px", fontSize: 12, color: "var(--text-primary)", border: "none", background: "none", cursor: "pointer" }}
+                        className="hover:bg-[var(--hover-bg)]"
+                      >
+                        <item.icon size={14} style={{ color: "#7c3aed", flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontWeight: 600 }}>{ACTION_LABELS[item.action]}</div>
+                          <div style={{ fontSize: 10, color: "var(--text-quaternary)", marginTop: 1 }}>{item.desc}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* AI Result Panel */}
+      {(aiLoading || aiResult || aiError) && (
+        <div style={{ paddingLeft: 32, paddingRight: 32, paddingBottom: 12, flexShrink: 0 }}>
+          <div style={{
+            border: "1px solid rgba(124, 58, 237, 0.25)",
+            borderRadius: "var(--radius-lg)",
+            overflow: "hidden",
+            background: isDark ? "rgba(124, 58, 237, 0.06)" : "rgba(124, 58, 237, 0.04)",
+          }}>
+            {/* Panel header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderBottom: (aiResult || aiError) ? "1px solid rgba(124, 58, 237, 0.15)" : "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 20, height: 20, borderRadius: 6, background: "linear-gradient(135deg, #4285F4, #9B72CB, #D96570)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Sparkles size={10} style={{ color: "white" }} />
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg, #4285F4, #9B72CB, #D96570)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Gemini</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)" }}>
+                  {aiAction ? ACTION_LABELS[aiAction] : ""}
+                </span>
+                {aiLoading && (
+                  <span style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
+                    Processing...
+                  </span>
+                )}
+              </div>
+              {!aiLoading && (
+                <button onClick={dismissAi} style={{ padding: 4, borderRadius: "var(--radius-sm)", color: "var(--text-quaternary)", background: "none", border: "none", cursor: "pointer" }}>
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {/* Loading spinner */}
+            {aiLoading && (
+              <div style={{ padding: "20px 14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <div style={{ width: 16, height: 16, border: "2px solid rgba(124, 58, 237, 0.2)", borderTop: "2px solid #7c3aed", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>Gemini is thinking...</span>
+              </div>
+            )}
+
+            {/* Error */}
+            {aiError && (
+              <div style={{ padding: "12px 14px", fontSize: 12, color: "var(--danger)" }}>
+                {aiError}
+              </div>
+            )}
+
+            {/* Result */}
+            {aiResult && (
+              <>
+                <div style={{ padding: "12px 14px", maxHeight: 240, overflowY: "auto" }}>
+                  {aiResult.title && (
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8, paddingBottom: 8, borderBottom: "1px solid rgba(124, 58, 237, 0.12)" }}>
+                      {aiResult.title}
+                    </div>
+                  )}
+                  <div style={{ fontSize: 13, lineHeight: 1.7, color: "var(--text-primary)", whiteSpace: "pre-wrap" }}>
+                    {aiResult.content}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderTop: "1px solid rgba(124, 58, 237, 0.15)" }}>
+                  <button
+                    onClick={handleReplaceContent}
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 11, fontWeight: 600, borderRadius: "var(--radius-md)", background: "linear-gradient(135deg, #7c3aed, #5707ff)", color: "white", border: "none", cursor: "pointer" }}
+                  >
+                    <Replace size={12} />
+                    Replace
+                  </button>
+                  <button
+                    onClick={handleAppendResult}
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 11, fontWeight: 600, borderRadius: "var(--radius-md)", backgroundColor: "var(--hover-bg)", color: "var(--text-primary)", border: "1px solid var(--border-medium)", cursor: "pointer" }}
+                  >
+                    Append
+                  </button>
+                  <button
+                    onClick={handleCopyResult}
+                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", fontSize: 11, fontWeight: 600, borderRadius: "var(--radius-md)", backgroundColor: "var(--hover-bg)", color: "var(--text-primary)", border: "1px solid var(--border-medium)", cursor: "pointer" }}
+                  >
+                    {copied ? <Check size={12} style={{ color: "var(--success)" }} /> : <Copy size={12} />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                  <div style={{ flex: 1 }} />
+                  <button onClick={dismissAi} style={{ fontSize: 11, color: "var(--text-quaternary)", background: "none", border: "none", cursor: "pointer" }}>
+                    Dismiss
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

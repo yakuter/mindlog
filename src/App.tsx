@@ -43,7 +43,7 @@ function App() {
     return (
       <div className="h-screen flex items-center justify-center" style={{ backgroundColor: "var(--editor-bg)" }}>
         <div className="text-center max-w-md px-4">
-          <p className="text-sm font-medium mb-2 text-[var(--danger)]">Failed to start MindLog</p>
+          <p className="text-sm font-medium mb-2 text-[var(--danger)]">Failed to start Passwall Notes</p>
           <p className="text-xs text-[var(--text-secondary)]">{error}</p>
         </div>
       </div>
