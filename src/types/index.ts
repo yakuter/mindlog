@@ -35,5 +35,6 @@ export type NavigationView =
   | "favorites"
   | "trash"
   | "settings"
+  | "conflicts"
   | { folder: string }
   | { tag: string };

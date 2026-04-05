@@ -4,6 +4,7 @@ import {
   Trash2,
   Search,
   Settings,
+  AlertTriangle,
 } from "lucide-react";
 import { useUiStore } from "../../stores/uiStore";
 import type { NavigationView } from "../../types";
@@ -75,6 +76,26 @@ export default function IconRail() {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Conflicts (dummy) */}
+      <button
+        onClick={() => setCurrentView("conflicts")}
+        className="w-9 h-9 rounded-[var(--radius-md)] flex items-center justify-center mb-1 transition-all"
+        style={{
+          backgroundColor: currentView === "conflicts" ? "rgba(245, 158, 11, 0.15)" : "transparent",
+          color: currentView === "conflicts" ? "#f59e0b" : "var(--icon-rail-text)",
+          position: "relative",
+        }}
+        title="Sync Conflicts"
+      >
+        <AlertTriangle size={18} strokeWidth={currentView === "conflicts" ? 2 : 1.8} />
+        <span style={{
+          position: "absolute", top: 4, right: 4,
+          width: 8, height: 8, borderRadius: 4,
+          backgroundColor: "#f59e0b",
+          border: "2px solid var(--icon-rail-bg)",
+        }} />
+      </button>
 
       {/* Version */}
       <span style={{ fontSize: 9, fontWeight: 600, color: "var(--text-quaternary)", marginBottom: 6, fontFamily: "'SF Mono', 'Fira Code', monospace", letterSpacing: "0.02em" }}>

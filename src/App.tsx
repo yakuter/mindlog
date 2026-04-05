@@ -11,6 +11,7 @@ import Sidebar from "./components/layout/Sidebar";
 import NoteList from "./components/layout/NoteList";
 import EditorPanel from "./components/layout/EditorPanel";
 import SettingsPanel from "./components/layout/SettingsPanel";
+import ConflictPanel from "./components/layout/ConflictPanel";
 import UpdateNotifier from "./components/common/UpdateNotifier";
 
 function App() {
@@ -70,6 +71,10 @@ function App() {
       {currentView === "settings" ? (
         <div className="flex-1 min-w-0">
           <SettingsPanel />
+        </div>
+      ) : currentView === "conflicts" ? (
+        <div className="flex-1 min-w-0">
+          <ConflictPanel />
         </div>
       ) : (
         <>
